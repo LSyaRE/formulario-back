@@ -17,8 +17,11 @@ await seedDefaultAdmin();
 const app = new Elysia()
     // CORS
     .use(cors({
-        origin: true,
-        credentials: true
+        origin: true, // Refleja el origen de la petición
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
+        credentials: true,
+        maxAge: 86400 // Cachear preflight por 24 horas
     }))
 
     // JWT

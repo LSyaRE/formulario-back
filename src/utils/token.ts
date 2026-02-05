@@ -13,10 +13,12 @@ export function generateToken(): string {
 /**
  * Crea la URL completa del formulario con el token
  * @param token - Token único
+ * @param baseUrl - URL base opcional (por ejemplo, del Origin de la petición)
  * @returns URL completa
  */
-export function createFormURL(token: string): string {
-    return `${FRONTEND_URL}/form/${token}`;
+export function createFormURL(token: string, baseUrl?: string): string {
+    const base = baseUrl || FRONTEND_URL;
+    return `${base}/form/${token}`;
 }
 
 /**
