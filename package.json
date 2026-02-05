@@ -1,0 +1,23 @@
+{
+  "name": "medical-records-system",
+  "version": "1.0.0",
+  "description": "Sistema de fichas médicas con ElysiaJS y MongoDB",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "create-admin": "bun scripts/createAdmin.ts"
+  },
+  "dependencies": {
+    "elysia": "^1.1.23",
+    "@elysiajs/cors": "^1.1.1",
+    "@elysiajs/jwt": "^1.1.1",
+    "@elysiajs/static": "^1.1.1",
+    "mongoose": "^8.8.4",
+    "bcryptjs": "^2.4.3",
+    "nanoid": "^5.0.9"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "bun-types": "latest"
+  }
+}

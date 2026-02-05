@@ -1,0 +1,13 @@
+node_modules
+.env
+.git
+.gitignore
+*.md
+.gemini
+.agent
+frontend
+public
+Dockerfile
+.dockerignore
+bun.lockb
+logs

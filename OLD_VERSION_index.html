@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Fichas Médicas</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <!-- Pantalla de Login/Registro -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <div class="auth-header">
+                <div class="logo">
+                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="60" height="60" rx="15" fill="url(#gradient1)"/>
+                        <path d="M30 15v30M15 30h30" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="gradient1" x1="0" y1="0" x2="60" y2="60">
+                                <stop offset="0%" stop-color="#667eea"/>
+                                <stop offset="100%" stop-color="#764ba2"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1>Sistema de Fichas Médicas</h1>
+                <p class="subtitle">Gestión segura de información médica</p>
+            </div>
+
+            <!-- Formulario de Login -->
+            <div id="login-form" class="auth-form active">
+                <h2>Iniciar Sesión</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="login-username">Usuario</label>
+                        <input type="text" id="login-username" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                </form>
+                <p class="auth-switch">¿No tienes cuenta? <a href="#" id="show-register">Regístrate aquí</a></p>
+            </div>
+
+            <!-- Formulario de Registro -->
+            <div id="register-form" class="auth-form">
+                <h2>Crear Cuenta</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="register-username">Usuario</label>
+                        <input type="text" id="register-username" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Contraseña</label>
+                        <input type="password" id="register-password" required autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password-confirm">Confirmar Contraseña</label>
+                        <input type="password" id="register-password-confirm" required autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registrarse</button>
+                </form>
+                <p class="auth-switch">¿Ya tienes cuenta? <a href="#" id="show-login">Inicia sesión aquí</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla Principal (Dashboard) -->
+    <div id="main-screen" class="screen">
+        <nav class="navbar">
+            <div class="nav-content">
+                <div class="nav-brand">
+                    <svg width="40" height="40" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="60" height="60" rx="15" fill="url(#gradient2)"/>
+                        <path d="M30 15v30M15 30h30" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="gradient2" x1="0" y1="0" x2="60" y2="60">
+                                <stop offset="0%" stop-color="#667eea"/>
+                                <stop offset="100%" stop-color="#764ba2"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <span>Fichas Médicas</span>
+                </div>
+                <div class="nav-actions">
+                    <span class="user-info" id="user-info"></span>
+                    <button class="btn btn-secondary" id="logout-btn">Cerrar Sesión</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <div class="content-header">
+                <h1>Mis Fichas Médicas</h1>
+                <button class="btn btn-primary" id="new-record-btn">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Nueva Ficha
+                </button>
+            </div>
+
+            <!-- Lista de Fichas -->
+            <div id="records-list" class="records-grid"></div>
+
+            <!-- Mensaje cuando no hay fichas -->
+            <div id="empty-state" class="empty-state">
+                <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="60" r="50" fill="url(#gradient3)" opacity="0.1"/>
+                    <path d="M60 30v60M30 60h60" stroke="url(#gradient3)" stroke-width="4" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="gradient3" x1="0" y1="0" x2="120" y2="120">
+                            <stop offset="0%" stop-color="#667eea"/>
+                            <stop offset="100%" stop-color="#764ba2"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h2>No hay fichas médicas</h2>
+                <p>Comienza creando tu primera ficha médica</p>
+                <button class="btn btn-primary" onclick="document.getElementById('new-record-btn').click()">Crear Primera Ficha</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Formulario -->
+    <div id="form-screen" class="screen">
+        <nav class="navbar">
+            <div class="nav-content">
+                <button class="btn btn-secondary" id="back-to-list">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 4L6 10l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Volver
+                </button>
+                <h2 id="form-title">Nueva Ficha Médica</h2>
+                <div></div>
+            </div>
+        </nav>
+
+        <div class="form-content">
+            <form id="medical-form">
+                <input type="hidden" id="record-id">
+
+                <!-- Sección: Información General -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>📌 Información General</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nombre">Nombre y apellido *</label>
+                                <input type="text" id="nombre" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fecha-nacimiento">Fecha de nacimiento *</label>
+                                <input type="date" id="fecha-nacimiento" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sexo *</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="sexo" value="Masculino" required>
+                                        <span>Masculino</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="sexo" value="Femenino">
+                                        <span>Femenino</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="sexo" value="Otro">
+                                        <span>Otro</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="funcion">Función</label>
+                                <input type="text" id="funcion" placeholder="Ej: Adulto">
+                            </div>
+                            <div class="form-group">
+                                <label for="estado-civil">Estado civil</label>
+                                <select id="estado-civil">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Soltero/a">Soltero/a</option>
+                                    <option value="Casado/a">Casado/a</option>
+                                    <option value="Divorciado/a">Divorciado/a</option>
+                                    <option value="Viudo/a">Viudo/a</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Plan de Salud -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>🏥 Plan de Salud</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="plan-salud">Plan de salud</label>
+                                <input type="text" id="plan-salud">
+                            </div>
+                            <div class="form-group">
+                                <label for="nombre-plan">Nombre del plan</label>
+                                <input type="text" id="nombre-plan">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tarjeta-salud">Tarjeta de salud</label>
+                                <input type="text" id="tarjeta-salud">
+                            </div>
+                            <div class="form-group">
+                                <label for="organismo-salud">Organismo Nacional de Salud</label>
+                                <input type="text" id="organismo-salud">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tipo-sangre">Tipo de sangre</label>
+                                <select id="tipo-sangre">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Historial de Enfermedades -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>💉 Historial de Enfermedades</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="checkbox-grid">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Varicela">
+                                <span>Varicela</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Meningitis">
+                                <span>Meningitis</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Hepatitis">
+                                <span>Hepatitis</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Dengue">
+                                <span>Dengue</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Neumonía">
+                                <span>Neumonía</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Malaria">
+                                <span>Malaria</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Fiebre amarilla">
+                                <span>Fiebre amarilla</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="H1N1">
+                                <span>H1N1</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="COVID-19">
+                                <span>COVID-19</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Cólera">
+                                <span>Cólera</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Rubéola">
+                                <span>Rubéola</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Sarampión">
+                                <span>Sarampión</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Tétanos">
+                                <span>Tétanos</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Viruela">
+                                <span>Viruela</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Tos ferina">
+                                <span>Tos ferina</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Difteria">
+                                <span>Difteria</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="enfermedad" value="Paperas">
+                                <span>Paperas</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Condiciones Médicas -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>🩸 Condiciones Médicas</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label>¿Ha recibido transfusión de sangre?</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="transfusion" value="Sí">
+                                    <span>Sí</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="transfusion" value="No">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="condition-group">
+                            <div class="form-group">
+                                <label>Problemas cardíacos</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="cardiaco" value="Sí" onchange="toggleMedicationField('cardiaco-med', this.value === 'Sí')">
+                                        <span>Sí</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="cardiaco" value="No" onchange="toggleMedicationField('cardiaco-med', this.value === 'Sí')">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group medication-field" id="cardiaco-med-group" style="display: none;">
+                                <label for="cardiaco-med">Medicamentos para el corazón</label>
+                                <textarea id="cardiaco-med" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="condition-group">
+                            <div class="form-group">
+                                <label>Diabetes</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="diabetes" value="Sí" onchange="toggleMedicationField('diabetes-med', this.value === 'Sí')">
+                                        <span>Sí</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="diabetes" value="No" onchange="toggleMedicationField('diabetes-med', this.value === 'Sí')">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group medication-field" id="diabetes-med-group" style="display: none;">
+                                <label for="diabetes-med">Medicamentos para la diabetes</label>
+                                <textarea id="diabetes-med" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="condition-group">
+                            <div class="form-group">
+                                <label>Problemas renales</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="renal" value="Sí" onchange="toggleMedicationField('renal-med', this.value === 'Sí')">
+                                        <span>Sí</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="renal" value="No" onchange="toggleMedicationField('renal-med', this.value === 'Sí')">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group medication-field" id="renal-med-group" style="display: none;">
+                                <label for="renal-med">Medicamentos para problemas renales</label>
+                                <textarea id="renal-med" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="condition-group">
+                            <div class="form-group">
+                                <label>Problemas psicológicos</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="psicologico" value="Sí" onchange="toggleMedicationField('psicologico-med', this.value === 'Sí')">
+                                        <span>Sí</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="psicologico" value="No" onchange="toggleMedicationField('psicologico-med', this.value === 'Sí')">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group medication-field" id="psicologico-med-group" style="display: none;">
+                                <label for="psicologico-med">Medicamentos psicológicos</label>
+                                <textarea id="psicologico-med" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Alergias -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>🌿 Alergias</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Alergia en la piel</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="alergia-piel" value="Sí">
+                                        <span>Sí</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="alergia-piel" value="No">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Alergia a alimentos</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="alergia-alimentos" value="Sí">
+                                        <span>Sí</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="alergia-alimentos" value="No">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Alergia a medicamentos</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="alergia-medicamentos" value="Sí">
+                                        <span>Sí</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="alergia-medicamentos" value="No">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lista-alergias">Lista de alergias</label>
+                            <textarea id="lista-alergias" rows="4" placeholder="Describe las alergias que padeces..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="medicamentos-alergias">¿Utiliza medicamentos para alergias?</label>
+                            <input type="text" id="medicamentos-alergias" placeholder="Nombre de los medicamentos">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Eventos Recientes -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>🚑 Eventos Recientes</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label>Problemas de salud recientes</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="problemas-recientes" value="Sí">
+                                    <span>Sí</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="problemas-recientes" value="No">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="medicamentos-recientes">Medicamentos recientes</label>
+                            <textarea id="medicamentos-recientes" rows="3" placeholder="Describe los medicamentos que has tomado recientemente..."></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Lesión grave reciente</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="lesion-grave" value="Sí">
+                                        <span>Sí</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="lesion-grave" value="No">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Fractura reciente</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="fractura" value="Sí">
+                                        <span>Sí</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="fractura" value="No">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tiempo-inmovilizado">Tiempo inmovilizado</label>
+                            <input type="text" id="tiempo-inmovilizado" placeholder="Ej: 2 semanas">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cirugias">Cirugías</label>
+                            <textarea id="cirugias" rows="3" placeholder="Describe las cirugías que has tenido..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hospitalizacion">Hospitalización en los últimos 5 años (motivo)</label>
+                            <textarea id="hospitalizacion" rows="3" placeholder="Describe las hospitalizaciones..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Discapacidad -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>♿ Discapacidad o Condición Especial</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="checkbox-grid">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="discapacidad" value="Física">
+                                <span>Física</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="discapacidad" value="Visual">
+                                <span>Visual</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="discapacidad" value="Auditiva">
+                                <span>Auditiva</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="discapacidad" value="Del habla">
+                                <span>Del habla</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="discapacidad" value="Intelectual">
+                                <span>Intelectual</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="discapacidad" value="Psíquica">
+                                <span>Psíquica</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="discapacidad" value="Autismo">
+                                <span>Autismo</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="discapacidad" value="Ninguna">
+                                <span>Ninguna</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="observacion-discapacidad">Observación</label>
+                            <textarea id="observacion-discapacidad" rows="4" placeholder="Observaciones adicionales..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-form">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Ficha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Confirmar</h3>
+            <p id="modal-message"></p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="modal-cancel">Cancelar</button>
+                <button class="btn btn-danger" id="modal-confirm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para mostrar/ocultar campos de medicamentos
+        function toggleMedicationField(fieldId, show) {
+            const group = document.getElementById(fieldId + '-group');
+            if (group) {
+                group.style.display = show ? 'block' : 'none';
+            }
+        }
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
