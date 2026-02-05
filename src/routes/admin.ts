@@ -93,7 +93,8 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
             await formToken.save();
 
-            const url = createFormURL(newToken);
+            const origin = request.headers.get('origin') || undefined;
+            const url = createFormURL(newToken, origin);
 
             return {
                 success: true,
@@ -148,7 +149,8 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
             await formToken.save();
 
-            const url = createFormURL(newToken);
+            const origin = request.headers.get('origin') || undefined;
+            const url = createFormURL(newToken, origin);
 
             return {
                 success: true,
